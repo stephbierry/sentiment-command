@@ -5,7 +5,6 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
 import { 
   BarChart3, 
   LayoutDashboard, 
@@ -30,8 +29,6 @@ interface SentimentScores {
   insight: string;
 }
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [view, setView] = useState<'dashboard' | 'history'>('dashboard');
@@ -51,26 +48,15 @@ export default function App() {
     if (!text.trim()) return;
     setLoading(true);
     try {
-      const prompt = `Analyze the sentiment of the following text and provide a result exactly in this JSON format:
-{
-  "positive": number (0-100),
-  "neutral": number (0-100),
-  "negative": number (0-100),
-  "insight": "Short summary in French of why it's positive/negative"
-}
-The three numbers must add up exactly to 100.
-Text: "${text}"`;
-
-      const response = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json"
-        }
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
       });
+
+      if (!response.ok) throw new Error('Failed to analyze');
       
-      const resultText = response.text || '';
-      const data = JSON.parse(resultText);
+      const data = await response.json();
       setScores(data);
       
       setHistory(prev => [{ 
@@ -310,7 +296,7 @@ Text: "${text}"`;
                     </div>
                     <div className="flex -space-x-4">
                       <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800 overflow-hidden">
-                         <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2yl4pnYMHrGopuUiUCmOZRZgIWKoijg9f-Bj1yRnMl_dyljDDF7HJNoyNXIG65D9MrS1Qh46MrisC4uN2oUv6WEt3wIJu8wyJhr0NcRctQHF09kmz9-pswP7I2J2kbAEmfKOMSlAfWNBukZpKw7H8eYWyNVqirRRfCjsQsivI__VnHzqbXD9yaRz1JrNjPhwMOF2AMwal82r1ey9lLg45bsr2TYKiLII3FyGpYQcthIZIKMk95LJ9Fpy4A6TfqE8XYoRJRm4tKkS_" alt="User" />
+                         <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU9CShCMiO3VLYYo1xWvN34TRZKbZCAvBGCDTysZpBrVUvBKGYIn6cXLT3KTPOcmhrXPQ6Ube7Z_9QS3DXUxzixPwO4D86Ge1zaxR9xn2TA_xDmtRwV5-Mla0a8IMBOkqkV0VAXIuU-r4B3oUHRAY-RQrvayHM2SSEgHX_dwIGyXdfQdrbFm7JYRDfmG1GbOOR3HqACJenIW9mwihIGPSJWkQIqzsRcXhmBm6MoN9eUX2WW-wxybYWFQg7yOqrOAsMVyBGcvsBYxFd" alt="User" />
                       </div>
                       <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800 overflow-hidden">
                          <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHSPjflhoue2ueCPnzQO4tFRy9lsWD6sVyMmkOW-B1fLH7f6RvjYyrG3clEnTDas0Y0oMZL_ABynNWpmdF_9e15uWunj7LA7XnGL65rmW_6jExDp7Js2l3n0RjCbBJglp5fDe6yy-lOK-ZWoz4GuXj2ABzDlmaNbRMDMbZz_rPyhPlLKAo4IOt4vl5-dJtVT4lxVNuvCM4cbt1rzO0vwyRgGeTJ8REvtbYkXNi874iIpeHD9TQFOjlgyA_wiic4WITf0xES1tdmbH3" alt="User" />
