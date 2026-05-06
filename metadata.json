@@ -1,0 +1,8 @@
+{
+  "name": "Sentiment Command AI",
+  "description": "Real-time AI-powered sentiment analysis dashboard for community engagement and fan feedback.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "AI Sentiment Analysis"
+  ]
+}
